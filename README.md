@@ -20,4 +20,12 @@ You can also refer to the [official TensorFlow implemenation](https://github.com
 ### Capsule framework
 ![Capsule framework](capsule-framework.png)
 > Image credits: [_@bojone_](https://github.com/bojone)
+ 
+### How to run?
+```bash
+python main.py
+```
+```bash
+tensorboard --logdir='./logs' --port=6006 # TensorBoard Visualization
+```
 
