@@ -1,0 +1,11 @@
+{
+    "dataset": "MNIST", // "MNIST" or "CIFAR?" (case insensitive)
+    "data_path": "./datasets", // Path to the dataset
+    "batch_size": 128, // Batch size
+
+    "epochs": 50, // Number of epochs
+    "lr": 0.001, // Learning rate
+    "lr_decay": 0.96, // Exponential learning rate decay
+    "num_routing": 3, // Number of routing iteration in routing capsules
+    "save_dir": "checkpoints/", // SAVE_MODEL_PATH
+}
