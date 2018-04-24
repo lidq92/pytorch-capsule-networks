@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 class CapsuleLoss(nn.Module):
-    def __init__(self, size_average=False, loss='margin_loss', loss_lambda=0.5, m_plus=0.9, m_minus=0.1, m=2, use_recon=True, recon_loss_scale=0.0005):
+    def __init__(self, size_average=False, loss='margin_loss', loss_lambda=0.5, m_plus=0.9, m_minus=0.1, use_recon=True, recon_loss_scale=0.0005):
         """
 		Capsule loss by combining margin/spread loss and reconstruction loss.
 		L = L_m (or L_s) + recon_loss_scale * L_r
