@@ -1,11 +1,27 @@
 dataset: MNIST # "MNIST" or "CIFAR?" (case insensitive)
+num_classes: 10 #
 data_path: datasets # Path to the dataset
 batch_size: 128 # Batch size
 
-epochs: 50 # Number of epochs
-lr: 0.001 # Learning rate
-lr_decay: 0.96 # Exponential learning rate decay
-num_routing: 3 # Number of routing iteration in routing capsules
-save_dir: checkpoints # SAVE_MODEL_PATH
+#model: ICLR2018
+model: NIPS2017
+
+NIPS2017:
+  epochs: 50 # Number of epochs
+  lr: 0.001 # Learning rate
+  lr_decay: 0.96 # Exponential learning rate decay
+  num_routing: 3 # Number of routing iteration in routing capsules
+  save_dir: checkpoints/NIPS2017 # SAVE_MODEL_PATH
+
+ICLR2018:
+  epochs: 500 # Number of epochs
+  lr: 0.01 # Learning rate
+  lr_decay: 0.96 # Exponential learning rate decay
+  routing: angle_routing # angle_routing, EM_routing
+  num_routing: 3 # Number of routing iteration in routing capsules
+  save_dir: checkpoints/ICLR2018 # SAVE_MODEL_PATH
 
 enableTensorboard: True #
+
+loss: margin_loss # cross_entropy_loss, margin_loss, spread_loss
+use-recon: True # use reconstruction loss or not

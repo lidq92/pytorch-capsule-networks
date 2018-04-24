@@ -1,57 +1,74 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-class MarginLoss(nn.Module):
-	def __init__(self, size_average=False, loss_lambda=0.5, 
-				 m_plus=0.9, m_minus=0.1):
-		"""
+
+class CapsuleLoss(nn.Module):
+    def __init__(self, size_average=False, loss='margin_loss', loss_lambda=0.5, m_plus=0.9, m_minus=0.1, m=2, use_recon=True, recon_loss_scale=0.0005):
+        """
+		Capsule loss by combining margin/spread loss and reconstruction loss.
+		L = L_m (or L_s) + recon_loss_scale * L_r
+		
+		Args:
+			size_average: should the losses be averaged (True) or summed 
+			(False) over observations for each minibatch
+			loss: which loss to use
+			loss_lambda, m_plus, m_minus: parameters of margin loss
+			use_recon: use reconstruction loss or not
+			recon_loss_scale: parameter for scaling down reconstruction loss
+    	"""
+        super(CapsuleLoss, self).__init__()
+        self.size_average        = size_average
+        self.loss                = loss
+        self.loss_lambda         = loss_lambda
+        self.m_plus              = m_plus
+        self.m_minus             = m_minus
+        self.use_recon           = use_recon
+        self.recon_loss_scale    = recon_loss_scale
+
+        self.reconstruction_loss = nn.MSELoss(size_average=size_average)
+
+    @classmethod
+    def spread_loss(cls, x, labels, m):
+        """
+	    Spread Loss:
+		L_i = \max{(0, m-(a_t - a_i))}^2, L = \sum_{i\neq t} L_i
+		defaut size_average is True
+	    """
+        L = F.multi_margin_loss(x, labels, p=2, margin=m, size_average=cls().size_average)
+
+        return L
+
+    @classmethod
+    def cross_entropy_loss(cls, x, target, m):
+        """
+		Cross Entropy Loss
+		target should be the one-hot vector of the label
+    	"""
+        return F.cross_entropy(x, target, size_average=cls().size_average)
+
+    @classmethod
+    def margin_loss(cls, x, labels, m):
+        """
 		Margin loss:
 		L_k = T_k * \max{(0, m^{+} - ||v_k||)}^2 + \lambda * (1 - T_k) * 
 		\max{(0, ||v_k|| - m^{-})}^2
-		
-		Args:
-			size_average: should the losses be averaged (True) or summed (False) over observations for each minibatch.
-			loss_lambda, m_plus, m_minus correspond to the formula parameters.
 		"""
-		super(MarginLoss, self).__init__()
-		self.size_average = size_average
-		self.m_plus = m_plus
-		self.m_minus = m_minus
-		self.loss_lambda = loss_lambda
+        left = F.relu(cls().m_plus - x, inplace=True) ** 2
+        right = F.relu(x - cls().m_minus, inplace=True) ** 2
+        L_k = labels * left + cls().loss_lambda* (1. - labels) * right
+        L_k = L_k.sum(dim=1)
 
-	def forward(self, inputs, labels):
-		L_k = labels * F.relu(self.m_plus - inputs)**2 + self.loss_lambda * \
-			  (1 - labels) * F.relu(inputs - self.m_minus)**2
-		L_k = L_k.sum(dim=1)
+        if cls().size_average:
+            return L_k.mean()
+        return L_k.sum()
 
-		if self.size_average:
-			return L_k.mean()
-		else:
-			return L_k.sum()
+    def forward(self, inputs, labels, images, reconstructions, m=0.2):
+        """m: parameter of spread loss. To avoid dead capsules in the earlier layers,
+        start with a small margin of 0.2 and linearly increasing it during training to 0.9."""
+        cap_loss = getattr(self, self.loss)(inputs, labels, m)
 
-class CapsuleLoss(nn.Module):
-	def __init__(self, loss_lambda=0.5, recon_loss_scale=5e-4, 
-				 size_average=False, m_plus=0.9, m_minus=0.1):
-		"""
-		Combined margin loss and reconstruction loss.
-		L = L_m + recon_loss_scale * L_r
-		
-		Args:
-			recon_loss_scale: param for scaling down the reconstruction loss
-			size_average: if True, reconstruction loss is MSE instead of SSE
-		"""
-		super(CapsuleLoss, self).__init__()
-		self.size_average = size_average
-		self.margin_loss = MarginLoss(size_average=size_average, 
-									  loss_lambda=loss_lambda, 
-									  m_plus=m_plus, 
-									  m_minus=m_minus)
-		self.recon_loss = nn.MSELoss(size_average=size_average)
-		self.recon_loss_scale = recon_loss_scale
+        if self.use_recon:
+            recon_loss = self.reconstruction_loss(reconstructions, images)
+            cap_loss  += self.recon_loss_scale * recon_loss
 
-	def forward(self, inputs, labels, images, reconstructions):
-		margin_loss = self.margin_loss(inputs, labels)
-		recon_loss = self.recon_loss(reconstructions, images)
-		caps_loss = margin_loss + self.recon_loss_scale * recon_loss
-
-		return caps_loss
+        return cap_loss

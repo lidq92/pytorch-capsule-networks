@@ -10,6 +10,7 @@ from logger.logger import Logger  #
 
 def main(args):
     conf = yaml.load(open(args.config))
+    conf.update(conf[conf['model']])
 
     if args.gpu_device is not None:
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_device
@@ -52,8 +53,10 @@ def main(args):
 
     # Training
     caps_net = CapsNetTrainer(loaders,
+                              conf['model'],
                               conf['lr'],
                               conf['lr_decay'],
+                              conf['num_classes'],
                               conf['num_routing'],
                               multi_gpu=args.multi_gpu)
 

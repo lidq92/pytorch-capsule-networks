@@ -5,7 +5,7 @@ from torch.autograd import Variable
 import os
 from numpy import prod
 from datetime import datetime
-from model.model import CapsuleNetwork
+from model.model import CapsuleNetwork, CapsNet
 from model.loss import CapsuleLoss
 from time import time
 
@@ -13,26 +13,30 @@ class CapsNetTrainer:
 	"""
 	Wrapper object for handling training and evaluation
 	"""
-	def __init__(self, loaders, learning_rate, lr_decay=0.96, num_routing=3,
+	def __init__(self, loaders, model='NIPS2017', learning_rate=0.001, lr_decay=0.96, num_classes=10, num_routing=3,
 				 use_gpu=torch.cuda.is_available(), multi_gpu=(torch.cuda.device_count() > 1)):
 		self.use_gpu = use_gpu
 		self.multi_gpu = multi_gpu
+		self.model = model
 
 		self.loaders = loaders
 		img_shape = self.loaders['train'].dataset[0][0].numpy().shape
-		
-		self.net = CapsuleNetwork(img_shape=img_shape, channels=256, primary_dim=8, num_classes=10, out_dim=16, num_routing=num_routing)
-		
+		if model == 'ICLR2018':
+			in_channels, A, B, C, D, E, r = 1, 64, 8, 16, 16, num_classes, num_routing
+			self.net = CapsNet(in_channels, A, B, C, D, E, r)
+		else:
+			self.net = CapsuleNetwork(img_shape=img_shape, channels=256, primary_dim=8, num_classes=num_classes,
+									  out_dim=16, num_routing=num_routing)
 		if self.use_gpu:
 			if self.multi_gpu:
 				self.net = nn.DataParallel(self.net).cuda()
 			else:
 				self.net = self.net.cuda()
-
-		self.criterion = CapsuleLoss(loss_lambda=0.5, recon_loss_scale=5e-4)
+		self.criterion = CapsuleLoss(loss='margin_loss') #
 		self.optimizer = optim.Adam(self.net.parameters(), lr=learning_rate)
 		self.scheduler = optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=lr_decay)
-		print(8*'#', 'PyTorch Model built'.upper(), 8*'#')
+		# self.scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'max', patience=1)
+		print(9*'#', 'PyTorch Model built'.upper(), 9*'#')
 		print('Num params:', sum([prod(p.size()) for p in self.net.parameters()]))
 	
 	def __repr__(self):
@@ -43,7 +47,8 @@ class CapsNetTrainer:
 		eye = torch.eye(len(classes))
 		if self.use_gpu:
 			eye = eye.cuda()
-		
+
+		steps, lambda_, m = len(self.loaders['train']), 0.001, 0.2
 		for epoch in range(1, epochs+1):
 			for phase in ['train', 'test']:
 				print('{}ing...'.format(phase).capitalize())
@@ -56,6 +61,12 @@ class CapsNetTrainer:
 				running_loss = 0.0
 				correct = 0; total = 0
 				for i, (images, labels) in enumerate(self.loaders[phase]):
+					if phase == 'train' and self.model == 'ICLR2018':
+						if lambda_ < 1:
+							lambda_ += 2e-1 / steps
+						if m < 0.9:
+							m += 2e-1 / steps
+
 					t1 = time()
 					if self.use_gpu:
 						images, labels = images.cuda(), labels.cuda()
@@ -66,8 +77,12 @@ class CapsNetTrainer:
 
 					self.optimizer.zero_grad()
 
-					outputs, reconstructions = self.net(images)
-					loss = self.criterion(outputs, labels, images, reconstructions)
+					if self.model == 'ICLR2018':
+						outputs, reconstructions = self.net(images, lambda_)
+					else: # 'NIPS2017'
+						outputs, reconstructions = self.net(images)
+
+					loss = self.criterion(outputs, labels, images, reconstructions, m)
 
 					if phase == 'train':
 						loss.backward()
@@ -104,6 +119,7 @@ class CapsNetTrainer:
 	            								  epoch)  #
 			
 			self.scheduler.step()
+			# self.scheduler1.step(accuracy)  #
 			
 		now = str(datetime.now()).replace(" ", "-")
 		error_rate = round((1-accuracy)*100, 2)
@@ -115,7 +131,11 @@ class CapsNetTrainer:
 			if self.use_gpu:
 				images, labels = images.cuda(), labels.cuda()
 
-			outputs, reconstructions = self.net(Variable(images))
+			if self.model == 'ICLR2018':
+				outputs, reconstructions = self.net(Variable(images), lambda_)
+			else:  # 'NIPS2017'
+				outputs, reconstructions = self.net(Variable(images))
+
 			_, predicted = torch.max(outputs.data, 1)
 			c = (predicted == labels).squeeze()
 			for i in range(labels.size(0)):
