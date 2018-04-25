@@ -12,8 +12,9 @@ def main(args):
     conf = yaml.load(open(args.config))
     conf.update(conf[conf['model']])
 
-    if args.gpu_device is not None:
+    if args.gpu_device is not None and torch.cuda.is_available():
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_device
+        use_cuda = True
     if args.multi_gpu:
         conf['batch_size'] *= torch.cuda.device_count()
 
@@ -58,6 +59,8 @@ def main(args):
                               conf['lr_decay'],
                               conf['num_classes'],
                               conf['num_routing'],
+                              conf['loss'],
+                              use_gpu=use_cuda,
                               multi_gpu=args.multi_gpu)
 
     ensure_dir('logs') #

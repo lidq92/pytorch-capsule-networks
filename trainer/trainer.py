@@ -13,7 +13,7 @@ class CapsNetTrainer:
 	"""
 	Wrapper object for handling training and evaluation
 	"""
-	def __init__(self, loaders, model='NIPS2017', learning_rate=0.001, lr_decay=0.96, num_classes=10, num_routing=3,
+	def __init__(self, loaders, model='NIPS2017', learning_rate=0.001, lr_decay=0.96, num_classes=10, num_routing=3, loss='margin_loss',
 				 use_gpu=torch.cuda.is_available(), multi_gpu=(torch.cuda.device_count() > 1)):
 		self.use_gpu = use_gpu
 		self.multi_gpu = multi_gpu
@@ -32,7 +32,7 @@ class CapsNetTrainer:
 				self.net = nn.DataParallel(self.net).cuda()
 			else:
 				self.net = self.net.cuda()
-		self.criterion = CapsuleLoss(loss='margin_loss') #
+		self.criterion = CapsuleLoss(loss=loss) #
 		self.optimizer = optim.Adam(self.net.parameters(), lr=learning_rate)
 		self.scheduler = optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=lr_decay)
 		# self.scheduler1 = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'max', patience=1)
