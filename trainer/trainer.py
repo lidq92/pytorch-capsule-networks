@@ -23,10 +23,13 @@ class CapsNetTrainer:
 		img_shape = self.loaders['train'].dataset[0][0].numpy().shape
 		if model == 'ICLR2018':
 			in_channels, A, B, C, D, E, r = 1, 64, 8, 16, 16, num_classes, num_routing
-			self.net = CapsNet(in_channels, A, B, C, D, E, r)
+			self.net = CapsNet(in_channels, A, B, C, D, E, r, 
+							   use_cuda=use_gpu)
 		else:
-			self.net = CapsuleNetwork(img_shape=img_shape, channels=256, primary_dim=8, num_classes=num_classes,
-									  out_dim=16, num_routing=num_routing)
+			self.net = CapsuleNetwork(img_shape=img_shape, channels=256, 
+									  primary_dim=8, num_classes=num_classes,
+									  out_dim=16, num_routing=num_routing, 
+									  use_cuda=use_gpu)
 		if self.use_gpu:
 			if self.multi_gpu:
 				self.net = nn.DataParallel(self.net).cuda()

@@ -12,9 +12,6 @@ def main(args):
     conf = yaml.load(open(args.config))
     conf.update(conf[conf['model']])
 
-    if args.gpu_device is not None and torch.cuda.is_available():
-        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_device
-        use_cuda = True
     if args.multi_gpu:
         conf['batch_size'] *= torch.cuda.device_count()
 
@@ -53,6 +50,7 @@ def main(args):
 
 
     # Training
+    use_gpu  = not args.disable_gpu and torch.cuda.is_available()
     caps_net = CapsNetTrainer(loaders,
                               conf['model'],
                               conf['lr'],
@@ -60,7 +58,7 @@ def main(args):
                               conf['num_classes'],
                               conf['num_routing'],
                               conf['loss'],
-                              use_gpu=use_cuda,
+                              use_gpu=use_gpu,
                               multi_gpu=args.multi_gpu)
 
     ensure_dir('logs') #
@@ -80,8 +78,8 @@ if __name__ == '__main__':
     parser.add_argument('--multi_gpu', action='store_true',
                         help='Flag whether to use multiple GPUs.')
     # Select GPU device
-    parser.add_argument('--gpu_device', type=str, default="0",
-                help='ID of a GPU to use when multiple GPUs are available.')
+    parser.add_argument('--disable_gpu', action='store_true',
+                help='Flag whether to use disable GPU')
 
     args = parser.parse_args()
 
