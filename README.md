@@ -31,7 +31,7 @@ You can also refer to the [official TensorFlow implemenation](https://github.com
  
 ### How to run?
 ```bash
-python main.py
+CUDA_VISIBLE_DEVICES=0 python main.py
 ```
 Please see main.py and config.yaml for more details.
 ```bash
