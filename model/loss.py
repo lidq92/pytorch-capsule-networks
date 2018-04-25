@@ -39,12 +39,12 @@ class CapsuleLoss(nn.Module):
         return L
 
     @classmethod
-    def cross_entropy_loss(cls, x, target, m):
+    def cross_entropy_loss(cls, x, labels, m):
         """
 		Cross Entropy Loss
-		target should be the one-hot vector of the label
+		x size should be (N, C), where C=num_classes, 0<=labels[i]<=C-1
     	"""
-        return F.cross_entropy(x, target, size_average=cls().size_average)
+        return F.cross_entropy(x, labels, size_average=cls().size_average)
 
     @classmethod
     def margin_loss(cls, x, labels, m):
