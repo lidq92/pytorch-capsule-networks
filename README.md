@@ -52,6 +52,7 @@ Thanks to [_@danielhavir_](https://github.com/danielhavir/capsule-network) and [
   
 - Keras:   
   - [XifengGuo/CapsNet-Keras](https://github.com/XifengGuo/CapsNet-Keras)   
+  - [bojone/Capsule](https://github.com/bojone/Capsule)
   
 - TensorFlow:
   - [naturomics/CapsNet-Tensorflow](https://github.com/naturomics/CapsNet-Tensorflow.git)   
