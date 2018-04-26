@@ -41,3 +41,32 @@ tensorboard --logdir='./logs' --port=6006 # TensorBoard Visualization
 ### Acknowledgements
 Thanks to [_@danielhavir_](https://github.com/danielhavir/capsule-network) and [_@ducminhkhoi_](https://github.com/ducminhkhoi/EM_Capsules)
 
+### Other Implementations of CapsNet in NIPS 2017
+- PyTorch:
+  - [danielhavir/capsule-network](https://github.com/danielhavir/capsule-network)
+  - [XifengGuo/CapsNet-Pytorch](https://github.com/XifengGuo/CapsNet-Pytorch)
+  - [timomernick/pytorch-capsule](https://github.com/timomernick/pytorch-capsule)
+  - [gram-ai/capsule-networks](https://github.com/gram-ai/capsule-networks)
+  - [nishnik/CapsNet-PyTorch](https://github.com/nishnik/CapsNet-PyTorch.git)
+  - [leftthomas/CapsNet](https://github.com/leftthomas/CapsNet)
+  
+- Keras:   
+  - [XifengGuo/CapsNet-Keras](https://github.com/XifengGuo/CapsNet-Keras)   
+  
+- TensorFlow:
+  - [naturomics/CapsNet-Tensorflow](https://github.com/naturomics/CapsNet-Tensorflow.git)   
+  - [InnerPeace-Wu/CapsNet-tensorflow](https://github.com/InnerPeace-Wu/CapsNet-tensorflow)   
+  - [chrislybaer/capsules-tensorflow](https://github.com/chrislybaer/capsules-tensorflow)
+  
+- MXNet:
+  - [AaronLeong/CapsNet_Mxnet](https://github.com/AaronLeong/CapsNet_Mxnet)
+  
+- Chainer:
+  - [soskek/dynamic_routing_between_capsules](https://github.com/soskek/dynamic_routing_between_capsules)
+
+- Matlab:
+  - [yechengxi/LightCapsNet](https://github.com/yechengxi/LightCapsNet)
+
+### Other Implementations of CapsNet in ICLR 2018
+- PyTorch:
+  - [ducminhkhoi/EM_Capsules](https://github.com/ducminhkhoi/EM_Capsules)
