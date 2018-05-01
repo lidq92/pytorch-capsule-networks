@@ -71,3 +71,6 @@ Thanks to [_@danielhavir_](https://github.com/danielhavir/capsule-network) and [
 ### Other Implementations of CapsNet in ICLR 2018
 - PyTorch:
   - [ducminhkhoi/EM_Capsules](https://github.com/ducminhkhoi/EM_Capsules)
+
+### A Collection of Capsule Networks
+[loretoparisi/CapsNet](https://github.com/loretoparisi/CapsNet)
